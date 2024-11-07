@@ -1,5 +1,5 @@
 import yargs from "yargs";
-import { AutoDeleteBot } from "./autoDeleteBot";
+import { AutoDeleteBot } from "./autoDelete/autoDeleteBot";
 
 const argv = yargs(process.argv.slice(2)).options({
     'applicationId': {
@@ -11,9 +11,20 @@ const argv = yargs(process.argv.slice(2)).options({
         alias: 't',
         describe: 'Application Token',
         type: 'string'
+    },
+    'sync': {
+        alias: 's',
+        describe: 'Sync commands with discord',
+        type: 'boolean'
     }
-}).demandOption(['token']).parseSync()
+}).demandOption(['token', 'applicationId']).parseSync()
 
 argv.applicationId
 
-new AutoDeleteBot(argv.token).start();
+console.log('sync ', argv.sync)
+if (argv.sync) {
+    new AutoDeleteBot(argv.token, argv.applicationId).registerCommandsWithDiscord();
+} else {
+    console.log('did not sync')
+}
+
