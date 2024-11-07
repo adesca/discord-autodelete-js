@@ -20,7 +20,7 @@ export class AutoDeleteBot {
 
             try {
                 await command.execute(interaction)
-            } catch(error) {
+            } catch (error) {
                 console.error(error);
                 if (interaction.replied || interaction.deferred) {
                     await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
@@ -29,7 +29,7 @@ export class AutoDeleteBot {
                 }
             }
         })
-        
+
     }
 
     start() {
@@ -39,22 +39,22 @@ export class AutoDeleteBot {
     async registerCommandsWithDiscord() {
         const rest = new REST().setToken(this.apiToken);
         const commands = Object.values(AutoDeleteCommands)
-        .map(commandEntry => commandEntry.data.toJSON());
+            .map(commandEntry => commandEntry.data.toJSON());
 
 
-try {
-		console.log(`Started refreshing ${commands.length} application (/) commands.`);
+        try {
+            console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
-		// The put method is used to fully refresh all commands in the guild with the current set
-		const data = await rest.put(
-			Routes.applicationCommands(this.applicationId),
-			{ body: commands },
-		);
+            // The put method is used to fully refresh all commands in the guild with the current set
+            const data = await rest.put(
+                Routes.applicationCommands(this.applicationId),
+                { body: commands },
+            );
 
-		console.log(`Successfully reloaded ${commands.length} application (/) commands.`);
-	} catch (error) {
-		// And of course, make sure you catch and log any errors!
-		console.error(error);
-	}
+            console.log(`Successfully reloaded ${commands.length} application (/) commands.`);
+        } catch (error) {
+            // And of course, make sure you catch and log any errors!
+            console.error(error);
+        }
     }
 }

@@ -21,10 +21,9 @@ const argv = yargs(process.argv.slice(2)).options({
 
 argv.applicationId
 
-console.log('sync ', argv.sync)
 if (argv.sync) {
     new AutoDeleteBot(argv.token, argv.applicationId).registerCommandsWithDiscord();
 } else {
-    console.log('did not sync')
+    new AutoDeleteBot(argv.token, argv.applicationId).start();
 }
 
