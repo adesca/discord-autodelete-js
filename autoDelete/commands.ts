@@ -1,11 +1,12 @@
 import { CacheType, ChatInputCommandInteraction, GuildTextChannelType, Interaction, SlashCommandBuilder, TextChannel } from "discord.js";
 import parse from "parse-duration";
+import { AutoDeleteBot } from "./autoDeleteBot";
 
 export const enableChannelCommand = {
     data: new SlashCommandBuilder().setName('enable').setDescription('Configure a channel to autodelete messages')
         .addChannelOption(option => option.setName('channel').setDescription('Channel to autodelete in').setRequired(true))
         .addStringOption(option => option.setName('duration').setDescription('How old messages should get to be').setRequired(true)),
-    async execute(interaction: ChatInputCommandInteraction) {
+    async execute(interaction: ChatInputCommandInteraction, bot: AutoDeleteBot) {
         const channel: TextChannel | null = interaction.options.getChannel('channel');
         const duration = interaction.options.getString('duration');
 
@@ -32,7 +33,7 @@ export const enableChannelCommand = {
         const response = await interaction.reply(`Enabled autodelete in ${channel.name} with message duration ${duration}`)
 
         try {
-
+            bot.registerChannel(channel, timeInMs, response)
         } catch (e) {
             await response.edit(`Failed to enable autodelete in ${channel.name}`)
             throw new Error("Failed to enable autodelete")

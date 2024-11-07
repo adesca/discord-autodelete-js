@@ -1,11 +1,12 @@
-import { Client, Events, GatewayIntentBits, REST, Routes } from "discord.js";
+import { Client, Events, GatewayIntentBits, InteractionResponse, REST, Routes, TextChannel } from "discord.js";
 import { AutoDeleteCommands } from "./commands";
+import { AutoDeleteChannel, MessageRegistry } from "./MessageRegistry";
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 
 export class AutoDeleteBot {
-    constructor(private apiToken: string, private applicationId: string) {
+    constructor(private apiToken: string, private applicationId: string, private messageRegistry: MessageRegistry) {
         client.once(Events.ClientReady, readyClient => {
             console.log(`ready! logged in as ${readyClient.user.tag}`)
         })
@@ -19,7 +20,7 @@ export class AutoDeleteBot {
             }
 
             try {
-                await command.execute(interaction)
+                await command.execute(interaction, this)
             } catch (error) {
                 console.error(error);
                 if (interaction.replied || interaction.deferred) {
@@ -36,25 +37,31 @@ export class AutoDeleteBot {
         client.login(this.apiToken);
     }
 
-    async registerCommandsWithDiscord() {
-        const rest = new REST().setToken(this.apiToken);
-        const commands = Object.values(AutoDeleteCommands)
-            .map(commandEntry => commandEntry.data.toJSON());
+    async registerChannel(channel: TextChannel, durationInMs: number, confirmationMessage: InteractionResponse<boolean>) {
+        this.messageRegistry.registerChannel(new AutoDeleteChannel(channel.id, durationInMs, confirmationMessage.id))
+
+    }
+
+}
+
+export async function registerCommandsWithDiscord(applicationId: string, apiToken: string) {
+    const rest = new REST().setToken(apiToken);
+    const commands = Object.values(AutoDeleteCommands)
+        .map(commandEntry => commandEntry.data.toJSON());
 
 
-        try {
-            console.log(`Started refreshing ${commands.length} application (/) commands.`);
+    try {
+        console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
-            // The put method is used to fully refresh all commands in the guild with the current set
-            const data = await rest.put(
-                Routes.applicationCommands(this.applicationId),
-                { body: commands },
-            );
+        // The put method is used to fully refresh all commands in the guild with the current set
+        const data = await rest.put(
+            Routes.applicationCommands(applicationId),
+            { body: commands },
+        );
 
-            console.log(`Successfully reloaded ${commands.length} application (/) commands.`);
-        } catch (error) {
-            // And of course, make sure you catch and log any errors!
-            console.error(error);
-        }
+        console.log(`Successfully reloaded ${commands.length} application (/) commands.`);
+    } catch (error) {
+        // And of course, make sure you catch and log any errors!
+        console.error(error);
     }
 }

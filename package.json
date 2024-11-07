@@ -4,14 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "setup": "tsx main.ts -t $TOKEN -a $APPLICATION_ID -s && drizzle-kit push --config ./db/drizzle.config.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:studio": "drizzle-kit studio --config ./db/drizzle.config.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@libsql/client": "^0.14.0",
     "@types/yargs": "^17.0.33",
     "discord.js": "^14.16.3",
+    "drizzle-kit": "^0.28.0",
+    "drizzle-orm": "^0.36.1",
     "parse-duration": "^1.1.0",
     "tsx": "^4.19.2",
     "yargs": "^17.7.2"

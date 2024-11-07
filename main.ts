@@ -1,5 +1,7 @@
 import yargs from "yargs";
-import { AutoDeleteBot } from "./autoDelete/autoDeleteBot";
+import { AutoDeleteBot, registerCommandsWithDiscord } from "./autoDelete/autoDeleteBot";
+import { MessageRegistry } from "./autoDelete/MessageRegistry";
+import { database } from "./database";
 
 const argv = yargs(process.argv.slice(2)).options({
     'applicationId': {
@@ -21,9 +23,14 @@ const argv = yargs(process.argv.slice(2)).options({
 
 argv.applicationId
 
-if (argv.sync) {
-    new AutoDeleteBot(argv.token, argv.applicationId).registerCommandsWithDiscord();
+if (argv.sync) {    
+    registerCommandsWithDiscord(argv.applicationId, argv.token)
 } else {
-    new AutoDeleteBot(argv.token, argv.applicationId).start();
+    const messageRegistry = new MessageRegistry(database)
+    // toplevel awaits aren't allowed
+    messageRegistry.open().then(() => {
+        new AutoDeleteBot(argv.token, argv.applicationId, messageRegistry).start();
+    });
+    
 }
 
