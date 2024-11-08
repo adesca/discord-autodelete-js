@@ -57,12 +57,12 @@ export class AutoDeleteBot {
         do {
             await scheduler.wait(1000)
             await this.deleteExpiredMessages();
-        } while(true)
+        } while (true)
     }
 
     async deleteExpiredMessages() {
         const expiredMessages = await this.messageRegistry.getExpiredMessages();
-      
+
         const expiredMessagesByChannelId: Record<string, typeof expiredMessages> = {}
         expiredMessages.forEach(message => {
             const currChannelMsgs = expiredMessagesByChannelId[message.channelId] || []
@@ -87,7 +87,7 @@ export class AutoDeleteBot {
 
     async scanAllChannels(fromBeginning = false) {
         const channels: TextChannel[] = []
-  
+
         Object.keys(this.messageRegistry.channels).forEach(async channelId => {
             try {
                 // For some reason we need to fetch it and then it'll be fully in the cache?
@@ -97,12 +97,12 @@ export class AutoDeleteBot {
                 if (channel) {
                     channels.push(channel as TextChannel);
                 }
-            
-    
+
+
                 await Promise.all(channels.map(ch => this.scanChannel(ch, fromBeginning)))
-            } catch(e) {
+            } catch (e) {
                 const error = e as DiscordAPIError;
-                console.error("Failed to retrieve channel ", channelId,  error.message )
+                console.error("Failed to retrieve channel ", channelId, error.message)
                 console.log("Deregistering channel ", channelId, " because it's disappeared ")
                 // this.messageRegistry.deregisterChannel(channelId)
 
@@ -122,7 +122,7 @@ export class AutoDeleteBot {
 
         let after = channelConfig.initialAutoDeleteMessageId;
 
-        if(!fromBeginning) {
+        if (!fromBeginning) {
             if (channel.lastMessage && channel.lastMessage.createdTimestamp > convertSnowflakeIdToTimestamp(after)) {
                 after = channel.lastMessage.id
             }
@@ -131,16 +131,16 @@ export class AutoDeleteBot {
         const afterTimestamp = convertSnowflakeIdToTimestamp(after);
 
         let foundCount = 0;
-        console.log('starting') 
+        console.log('starting')
         // not using the client to fetch the messages because it seems to be really slow compared to a direct rest call
         // especially for the minimal amount of info i need
         const channelMessages = await this.rest.get(Routes.channelMessages(channel.id)) as MessageResponseInterface[];
         const messagesToDelete = channelMessages
-        .filter(message => new Date(message.timestamp).getTime() > afterTimestamp)
-        .map(message => {
-            foundCount += 1;
-            return message.id;
-        })
+            .filter(message => new Date(message.timestamp).getTime() > afterTimestamp)
+            .map(message => {
+                foundCount += 1;
+                return message.id;
+            })
         console.log('messaged fetched and processed')
 
         console.log('would delete ', foundCount, ' messages')
@@ -168,7 +168,7 @@ export class AutoDeleteBot {
 
 }
 
-export async function registerCommandsWithDiscord(applicationId: string, apiToken: string) {
+export async function registerCommandsWithDiscord(applicationId: string, apiToken: string, guildId?: string) {
     const rest = new REST().setToken(apiToken);
     const commands = Object.values(AutoDeleteCommands)
         .map(commandEntry => commandEntry.data.toJSON());
@@ -177,11 +177,18 @@ export async function registerCommandsWithDiscord(applicationId: string, apiToke
     try {
         console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
-        // The put method is used to fully refresh all commands in the guild with the current set
-        const data = await rest.put(
-            Routes.applicationCommands(applicationId),
-            { body: commands },
-        );
+        if (guildId) {
+            await rest.put(
+                Routes.applicationGuildCommands(applicationId, guildId),
+                { body: commands },
+            );
+        } else {
+            await rest.put(
+                Routes.applicationCommands(applicationId),
+                { body: commands },
+            );
+        }
+
 
         console.log(`Successfully reloaded ${commands.length} application (/) commands.`);
     } catch (error) {

@@ -5,7 +5,7 @@ import { AutoDeleteBot } from "./autoDeleteBot";
 export const enableChannelCommand = {
     data: new SlashCommandBuilder().setName('enable').setDescription('Configure a channel to autodelete messages')
         .addChannelOption(option => option.setName('channel').setDescription('Channel to autodelete in').setRequired(true))
-        .addStringOption(option => option.setName('duration').setDescription('How long messages should stay in the server (no longer than 12 days)').setRequired(true)),
+        .addStringOption(option => option.setName('duration').setDescription('How long messages should stay in the channel (no longer than 12 days)').setRequired(true)),
     async execute(interaction: ChatInputCommandInteraction, bot: AutoDeleteBot) {
         const channel: TextChannel | null = interaction.options.getChannel('channel');
         const duration = interaction.options.getString('duration');
