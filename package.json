@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "concurrently npm:start:*",
-    "start:bot": "db=sqlite3 && tsx main.ts -t $TOKEN -a $APPLICATION_ID",
+    "start:bot": "tsx main.ts -t $TOKEN -a $APPLICATION_ID",
     "sync-dev": "tsx main.ts -t $TOKEN -a $APPLICATION_ID --sync-dev 272131287916085258",
     "setup": "tsx main.ts -t $TOKEN -a $APPLICATION_ID -s && drizzle-kit push --config ./db/drizzle.config.ts",
     "test": "echo \"Error: no test specified\" && exit 1",

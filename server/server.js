@@ -8,7 +8,7 @@ const { SqliteGuiNodeMiddleware } = require("sqlite-gui-node");
 
 const app = express();
 app.use(basicAuth({
-    users: {'admin': 'supersecret'},
+    users: {'admin': process.env.ADMIN_PASSWORD},
     challenge: true
 }))
 app.use(SqliteGuiNodeMiddleware(app, db));
