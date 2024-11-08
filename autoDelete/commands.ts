@@ -1,4 +1,4 @@
-import { CacheType, ChatInputCommandInteraction, GuildTextChannelType, Interaction, SlashCommandBuilder, TextChannel } from "discord.js";
+import {  ChatInputCommandInteraction, SlashCommandBuilder, TextChannel } from "discord.js";
 import parse from "parse-duration";
 import { AutoDeleteBot } from "./autoDeleteBot";
 
@@ -13,7 +13,7 @@ export const enableChannelCommand = {
         if (!channel || !duration) {
             console.error("Missing channel or duration")
             interaction.reply({ content: 'Missing channel or duration', ephemeral: true });
-        
+
             return;
         }
 
@@ -43,7 +43,7 @@ export const enableChannelCommand = {
             await response.edit(`Failed to enable autodelete in ${channel.name}`)
             throw new Error("Failed to enable autodelete")
         }
-    
+
     }
 }
 
@@ -60,30 +60,34 @@ export const disableChannelCommand = {
             await bot.deregisterChannel(channel)
         } catch (e) {
             await response.edit(`Failed to disable autodelete in ${channel.name}`)
-            throw new Error("Failed to enable autodelete")
+            throw new Error("Failed to disable autodelete")
         }
 
     }
 }
 
-// export const listChannelCommand = {
-//     data: new SlashCommandBuilder().setName('list').setDescription('List all channels with autodelete enabled and their durations'),
-// async execute(interaction: ChatInputCommandInteraction, bot: AutoDeleteBot) {
-   
-//     const response = await interaction.reply(`Working on it...`)
+export const listChannelCommand = {
+    data: new SlashCommandBuilder().setName('list').setDescription('List all channels with autodelete enabled and their durations'),
+    async execute(interaction: ChatInputCommandInteraction, bot: AutoDeleteBot) {
 
-//     try {
-//         const channels: Array<[channelName: string, duration: string]> = await bot.getChannels()
-//         await response.edit(`Failed to disable autodelete in ${channel.name}`)
-//     } catch (e) {
-//         await response.edit(`Failed to disable autodelete in ${channel.name}`)
-//         throw new Error("Failed to enable autodelete")
-//     }
+        const response = await interaction.reply(`Working on it...`)
 
-// }
-// }
+        try {
+            const channels: Array<[channelName: string, duration: string]> = await bot.getChannels()
+            let accString = "";
+            channels.forEach(([name, durationInEnglish]) => {
+                accString += `#${name} duration: ${durationInEnglish}\n`
+            })
+            await response.edit(`${accString}`)
+        } catch (e) {
+            await response.edit(`Failed to list the channels :(`)
+            throw new Error("Failed to list channels")
+        }
+    }
+}
 
 export const AutoDeleteCommands = {
     enable: enableChannelCommand,
-    disable: disableChannelCommand
+    disable: disableChannelCommand,
+    list: listChannelCommand
 }

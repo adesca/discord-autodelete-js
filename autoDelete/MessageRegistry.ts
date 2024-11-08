@@ -49,27 +49,9 @@ export class MessageRegistry {
         console.log('successfully registered a channel ', channel.name)
     }
 
-    async getNextExpiringMessage(): Promise<[something: unknown, deleteTime: number | null]> {
-        const [nextExpiringMessage] =  await this.db.select().from(messages).orderBy(asc(messages.deleteAt)).limit(1)
-        if (nextExpiringMessage) {
-            return [0,nextExpiringMessage.deleteAt];
-        } else {
-            return [0,null]
-        }
+    async getChannels() {
+        return this.db.select().from(channelsDB)
     }
-
-    // async getLatestMessage(channelId: string) {
-    //     // can I get this off of the channel object?
-    //     const [latestMessage] = await this.db.select().from(messages).where(eq(channelsDB.channelId, channelId)).orderBy(desc(messages.messageId)).limit(1);
-    //     if (latestMessage) {
-    //         return {
-    //             ...latestMessage,
-    //             createdAt: convertSnowflakeIdToTimestamp(latestMessage.messageId)
-    //         };
-    //     } else return null;
-        
-    // }
-
     async getExpiredMessages() {
         const nowTimestamp = new Date().getTime();
         await this.db.update(messages).set({markForDeletion: true}).where(lte(messages.deleteAt, nowTimestamp));
@@ -81,22 +63,9 @@ export class MessageRegistry {
         await this.db.delete(messages).where(eq(messages.markForDeletion, true))
     }
 
-    async popExpiredMessages() {
-        const nowTimestamp = new Date().getTime();
-        // may not be needed? 
-        
-    
-        return await this.db.delete(messages).where(lte(messages.deleteAt, nowTimestamp)).returning()
-    }
-
-    convertRowToPartialMessage() {
-
-    }
-
+   
     async deregisterChannel(channelId: string) {
-
         await this.db.delete(channelsDB).where(eq(channelsDB.channelId, channelId))
-       
     }
 
 }

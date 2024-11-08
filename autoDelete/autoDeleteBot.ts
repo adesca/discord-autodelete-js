@@ -161,6 +161,11 @@ export class AutoDeleteBot {
         this.messageRegistry.deregisterChannel(channel.id)
     }
 
+    async getChannels(): Promise<Array<[channelName: string, duration: string]>> {
+        const channels = await this.messageRegistry.getChannels()
+        return channels.map(channel => [channel.channelName, channel.durationInEnglish])
+    }
+
 }
 
 export async function registerCommandsWithDiscord(applicationId: string, apiToken: string) {

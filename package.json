@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "tsx main.ts -t $TOKEN -a $APPLICATION_ID",
+    "sync-dev": "",
     "setup": "tsx main.ts -t $TOKEN -a $APPLICATION_ID -s && drizzle-kit push --config ./db/drizzle.config.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "db:studio": "drizzle-kit studio --config ./db/drizzle.config.ts"
