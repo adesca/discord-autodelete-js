@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "prestart": "drizzle-kit push --config ./db/drizzle.config.ts",
     "start": "concurrently npm:start:*",
     "start:bot": "tsx main.ts -t $TOKEN -a $APPLICATION_ID",
     "sync-dev": "tsx main.ts -t $TOKEN -a $APPLICATION_ID --sync-dev 272131287916085258",
