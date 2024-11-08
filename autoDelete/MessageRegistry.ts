@@ -32,16 +32,21 @@ export class MessageRegistry {
         
     }
 
-    async registerChannel(channel: AutoDeleteChannel) {
-        await this.db.delete(channelsDB).where(eq(channelsDB.channelId, channel.channelId))
-        // Could we just do an upsert and skip the delete step?
-        // Original code says that this is to prevent race conditions
-        await this.db.insert(channelsDB).values(channel).onConflictDoUpdate({ target: channelsDB.channelId, set: {
-            durationInMs: channel.durationInMs, initialAutoDeleteMessageId: channel.initialAutoDeleteMessageId
+    async registerChannel(channel: TextChannel, durationInMs: number, initialAutoDeleteMessageId: string, durationInEnglish: string) {
+        await this.db.delete(channelsDB).where(eq(channelsDB.channelId, channel.id))
+       
+        await this.db.insert(channelsDB).values({
+            durationInMs, durationInEnglish,
+            channelId: channel.id,
+            initialAutoDeleteMessageId,
+            channelName: channel.name
+        }).onConflictDoUpdate({ target: channelsDB.channelId, set: {
+            durationInMs: durationInMs, initialAutoDeleteMessageId
         }})
 
-        this.channels[channel.channelId] = channel;
-        console.log('successfully registered a channel ', channel, this.channels)
+         // If there's a conflict, we update with the new values
+        // this.channels[channel.channelId] = channel;
+        console.log('successfully registered a channel ', channel.name)
     }
 
     async getNextExpiringMessage(): Promise<[something: unknown, deleteTime: number | null]> {
@@ -89,9 +94,9 @@ export class MessageRegistry {
     }
 
     async deregisterChannel(channelId: string) {
-        // todo: handle deleted channels
+
         await this.db.delete(channelsDB).where(eq(channelsDB.channelId, channelId))
-        // this.channels[channelId] = undefined;
+       
     }
 
 }

@@ -7,7 +7,9 @@ export const channels = sqliteTable('channels', {
     // https://medium.com/netcord/discord-snowflake-explained-id-generation-process-a468be00a570
     channelId: text().primaryKey(),
     durationInMs: int().notNull(),
-    initialAutoDeleteMessageId: text().notNull()
+    initialAutoDeleteMessageId: text().notNull(),
+    channelName: text().notNull(),
+    durationInEnglish: text().notNull()
 })
 
 export const messages = sqliteTable('messages', {

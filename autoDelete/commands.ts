@@ -38,7 +38,7 @@ export const enableChannelCommand = {
         const response = await interaction.reply(`Enabled autodelete in ${channel.name} with message duration ${duration}`)
 
         try {
-            bot.registerChannel(channel, timeInMs, response)
+            bot.registerChannel(channel, timeInMs, response, duration)
         } catch (e) {
             await response.edit(`Failed to enable autodelete in ${channel.name}`)
             throw new Error("Failed to enable autodelete")
@@ -47,6 +47,43 @@ export const enableChannelCommand = {
     }
 }
 
+export const disableChannelCommand = {
+    data: new SlashCommandBuilder().setName('disable').setDescription('Turn off message autodeletion for a channel')
+        .addChannelOption(option => option.setName('channel').setDescription('Channel to disable autodelete in').setRequired(true)),
+    async execute(interaction: ChatInputCommandInteraction, bot: AutoDeleteBot) {
+        const channel: TextChannel | null = interaction.options.getChannel('channel');
+        if (!channel) return;
+
+        const response = await interaction.reply(`Disabled autodelete in ${channel.name}`)
+
+        try {
+            await bot.deregisterChannel(channel)
+        } catch (e) {
+            await response.edit(`Failed to disable autodelete in ${channel.name}`)
+            throw new Error("Failed to enable autodelete")
+        }
+
+    }
+}
+
+// export const listChannelCommand = {
+//     data: new SlashCommandBuilder().setName('list').setDescription('List all channels with autodelete enabled and their durations'),
+// async execute(interaction: ChatInputCommandInteraction, bot: AutoDeleteBot) {
+   
+//     const response = await interaction.reply(`Working on it...`)
+
+//     try {
+//         const channels: Array<[channelName: string, duration: string]> = await bot.getChannels()
+//         await response.edit(`Failed to disable autodelete in ${channel.name}`)
+//     } catch (e) {
+//         await response.edit(`Failed to disable autodelete in ${channel.name}`)
+//         throw new Error("Failed to enable autodelete")
+//     }
+
+// }
+// }
+
 export const AutoDeleteCommands = {
-    enable: enableChannelCommand
+    enable: enableChannelCommand,
+    disable: disableChannelCommand
 }

@@ -20,7 +20,7 @@ export class AutoDeleteBot {
         })
 
         client.on(Events.MessageCreate, async message => {
-            this.messageRegistry.registerMessage(message)
+            await this.messageRegistry.registerMessage(message)
         })
 
         client.on(Events.InteractionCreate, async interaction => {
@@ -153,8 +153,12 @@ export class AutoDeleteBot {
 
     }
 
-    async registerChannel(channel: TextChannel, durationInMs: number, confirmationMessage: InteractionResponse<boolean>) {
-        this.messageRegistry.registerChannel(new AutoDeleteChannel(channel.id, durationInMs, confirmationMessage.id))
+    async registerChannel(channel: TextChannel, durationInMs: number, confirmationMessage: InteractionResponse<boolean>, durationInEnglish: string) {
+        this.messageRegistry.registerChannel(channel, durationInMs, confirmationMessage.id, durationInEnglish)
+    }
+
+    async deregisterChannel(channel: TextChannel) {
+        this.messageRegistry.deregisterChannel(channel.id)
     }
 
 }
