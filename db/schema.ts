@@ -1,4 +1,5 @@
-import { sqliteTable, text, int } from "drizzle-orm/sqlite-core";
+
+import { sqliteTable, text, int, integer } from "drizzle-orm/sqlite-core";
 
 export const channels = sqliteTable('channels', {
     // IDs are snowflakes, which are guaranteed to be numbers and increasing
@@ -12,5 +13,6 @@ export const channels = sqliteTable('channels', {
 export const messages = sqliteTable('messages', {
     channelId: text().references(() => channels.channelId, {onDelete: 'cascade'}).notNull(),
     messageId: text().notNull(),
-    deleteAt: int().notNull()
+    deleteAt: int().notNull(),
+    markForDeletion: integer({mode: 'boolean'}).default(false)
 })

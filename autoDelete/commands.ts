@@ -5,7 +5,7 @@ import { AutoDeleteBot } from "./autoDeleteBot";
 export const enableChannelCommand = {
     data: new SlashCommandBuilder().setName('enable').setDescription('Configure a channel to autodelete messages')
         .addChannelOption(option => option.setName('channel').setDescription('Channel to autodelete in').setRequired(true))
-        .addStringOption(option => option.setName('duration').setDescription('How old messages should get to be').setRequired(true)),
+        .addStringOption(option => option.setName('duration').setDescription('How long messages should stay in the server (no longer than 12 days)').setRequired(true)),
     async execute(interaction: ChatInputCommandInteraction, bot: AutoDeleteBot) {
         const channel: TextChannel | null = interaction.options.getChannel('channel');
         const duration = interaction.options.getString('duration');
@@ -25,6 +25,11 @@ export const enableChannelCommand = {
 
         if (timeInMs < 0) {
             await interaction.reply({ content: 'Invalid duration, duration must be positive', ephemeral: true });
+            return;
+        }
+
+        if (timeInMs > 12 * 24 * 60 * 60 * 1000) {
+            await interaction.reply({ content: 'Invalid duration, duration cannot be longer than 12 days', ephemeral: true });
             return;
         }
 

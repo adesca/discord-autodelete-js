@@ -22,7 +22,7 @@ export class MessageRegistry {
     }
 
     async registerMessage(message: Message) {
-        const channelConfig = this.channels[+message.channelId];
+        const channelConfig = this.channels[message.channelId];
 
         if (!channelConfig) return;
 
@@ -65,16 +65,22 @@ export class MessageRegistry {
         
     // }
 
+    async getExpiredMessages() {
+        const nowTimestamp = new Date().getTime();
+        await this.db.update(messages).set({markForDeletion: true}).where(lte(messages.deleteAt, nowTimestamp));
+
+        return  await this.db.select().from(messages).where(eq(messages.markForDeletion, true))
+    }
+
+    async clearMessagesMarkedForDeletion() {
+        await this.db.delete(messages).where(eq(messages.markForDeletion, true))
+    }
+
     async popExpiredMessages() {
         const nowTimestamp = new Date().getTime();
         // may not be needed? 
-        const expiredMessages = await this.db.select().from(messages)
-        .innerJoin(channelsDB, eq(channelsDB.channelId, messages.channelId))
-        .where(lte(messages.deleteAt, nowTimestamp))
         
-        // expiredMessages.map(m => )
-
-
+    
         return await this.db.delete(messages).where(lte(messages.deleteAt, nowTimestamp)).returning()
     }
 
@@ -85,7 +91,7 @@ export class MessageRegistry {
     async deregisterChannel(channelId: string) {
         // todo: handle deleted channels
         await this.db.delete(channelsDB).where(eq(channelsDB.channelId, channelId))
-        this.channels[channelId] = undefined;
+        // this.channels[channelId] = undefined;
     }
 
 }
