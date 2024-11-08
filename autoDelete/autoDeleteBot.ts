@@ -102,6 +102,7 @@ export class AutoDeleteBot {
                 await Promise.all(channels.map(ch => this.scanChannel(ch, fromBeginning)))
             } catch (e) {
                 const error = e as DiscordAPIError;
+                console.error(error)
                 console.error("Failed to retrieve channel ", channelId, error.message)
                 console.log("Deregistering channel ", channelId, " because it's disappeared ")
                 // this.messageRegistry.deregisterChannel(channelId)

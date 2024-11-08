@@ -1,4 +1,4 @@
-start.local.sh
+*.local.sh
 # Logs
 logs
 *.log

@@ -4,11 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "tsx main.ts -t $TOKEN -a $APPLICATION_ID",
+    "start": "concurrently npm:start:*",
+    "start:bot": "db=sqlite3 && tsx main.ts -t $TOKEN -a $APPLICATION_ID",
     "sync-dev": "tsx main.ts -t $TOKEN -a $APPLICATION_ID --sync-dev 272131287916085258",
     "setup": "tsx main.ts -t $TOKEN -a $APPLICATION_ID -s && drizzle-kit push --config ./db/drizzle.config.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "db:studio": "drizzle-kit studio --config ./db/drizzle.config.ts"
+    "db:studio": "drizzle-kit studio --config ./db/drizzle.config.ts",
+    "db:update": "drizzle-kit push --config ./db/drizzle.config.ts",
+    "start:db-gui": "node ./server/server.js"
   },
   "keywords": [],
   "author": "",
@@ -16,10 +19,14 @@
   "dependencies": {
     "@libsql/client": "^0.14.0",
     "@types/yargs": "^17.0.33",
+    "concurrently": "^9.1.0",
     "discord.js": "^14.16.3",
     "drizzle-kit": "^0.28.0",
     "drizzle-orm": "^0.36.1",
+    "express": "^4.21.1",
+    "express-basic-auth": "^1.2.1",
     "parse-duration": "^1.1.0",
+    "sqlite-gui-node": "^1.3.6",
     "tsx": "^4.19.2",
     "yargs": "^17.7.2"
   }

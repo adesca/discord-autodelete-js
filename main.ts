@@ -26,7 +26,10 @@ const argv = yargs(process.argv.slice(2)).options({
     }
 }).demandOption(['token', 'applicationId']).parseSync()
 
-argv.applicationId
+// yargs only requires that the flags be present, not that they have values
+if(!argv.applicationId || !argv.token) {
+    throw new Error("Token and Application ID need valid values")
+}
 
 if (argv.sync) {    
     registerCommandsWithDiscord(argv.applicationId, argv.token)
