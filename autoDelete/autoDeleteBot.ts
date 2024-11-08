@@ -50,10 +50,7 @@ export class AutoDeleteBot {
     async beginMonitor() {
         console.log('monitoring...')
         await this.scanAllChannels();
-        do {
-            await scheduler.wait(5000);
-            await this.scanAllChannels();
-        } while(true)
+        await this.monitorExpiredMessages();
         
         // on_ready events after the first may imply that the bot was temporarily disconnected
         // to the extent that it cannot replay missed events, so it may have missed some messages
