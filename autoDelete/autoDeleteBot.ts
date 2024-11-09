@@ -4,12 +4,12 @@ import { AutoDeleteChannel, MessageRegistry } from "./MessageRegistry";
 import { scheduler } from 'node:timers/promises';
 import { convertSnowflakeIdToTimestamp } from "../util";
 import { ChannelResponseInterface, MessageResponseInterface } from "./models";
+import { AuditLogs } from "./auditLogs";
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
 
 
 export class AutoDeleteBot {
-    activeSleep: boolean;
     rest: REST;
 
 
@@ -20,13 +20,21 @@ export class AutoDeleteBot {
         })
 
         client.on(Events.MessageCreate, async message => {
-            await this.messageRegistry.registerMessage(message)
+        
+
+            console.log(message.content)
+            if (!message.author.bot) {
+                await this.messageRegistry.registerMessage(message)
+            } else {
+                await AuditLogs.logNewMessage("Received message, skipping because it's a bot " + message.author.displayName)
+            }
+           
         })
 
         client.on(Events.InteractionCreate, async interaction => {
             if (!interaction.isChatInputCommand()) return;
 
-            const command = AutoDeleteCommands[interaction.commandName]
+            const command = AutoDeleteCommands[interaction.commandName as keyof typeof AutoDeleteCommands]
             if (!command) {
                 console.error("No matching command with name ", interaction.commandName)
             }
@@ -87,8 +95,9 @@ export class AutoDeleteBot {
 
     async scanAllChannels(fromBeginning = false) {
         const channels: TextChannel[] = []
+        await AuditLogs.logNewMessage("Scanning all channels")
 
-        Object.keys(this.messageRegistry.channels).forEach(async channelId => {
+        Object.keys(await this.messageRegistry.getChannels()).forEach(async channelId => {
             try {
                 // For some reason we need to fetch it and then it'll be fully in the cache?
                 const partialChannel = await this.rest.get(Routes.channel(channelId)) as ChannelResponseInterface
@@ -114,9 +123,9 @@ export class AutoDeleteBot {
     }
 
     async scanChannel(channel: TextChannel, fromBeginning: boolean) {
-        console.log('Scanning channel ', channel.id)
-        const channelConfig = this.messageRegistry.channels[channel.id]
-
+        await AuditLogs.logNewMessage("Scanning channel " + channel.name + " " + channel.id)
+        const channelConfig = await this.messageRegistry.getChannel(channel.id);
+       
         if (!channelConfig) {
             throw new Error("Can't scan unregistered channel")
         }
@@ -145,12 +154,8 @@ export class AutoDeleteBot {
         console.log('messaged fetched and processed')
 
         console.log('would delete ', foundCount, ' messages')
+        AuditLogs.logNewMessage("Bulk deleting "+ messagesToDelete.length+ " messages")
         channel.bulkDelete(messagesToDelete)
-        // const awaitMessages  = await channel.awaitMessages();
-        // console.log('await', awaitMessages);
-        // console.log('found')
-        // const blah2 = await channel.messages.fetch();
-        // console.log('blah2', blah2)
 
     }
 

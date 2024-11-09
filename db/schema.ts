@@ -18,3 +18,10 @@ export const messages = sqliteTable('messages', {
     deleteAt: int().notNull(),
     markForDeletion: integer({mode: 'boolean'}).default(false)
 })
+
+export const auditEvents = sqliteTable('audit_events', {
+    id: int().primaryKey({autoIncrement: true}),
+    event: text().notNull(),
+    timestamp: text().notNull(),
+    timestampMs: int().notNull()
+})

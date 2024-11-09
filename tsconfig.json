@@ -1,25 +1,24 @@
 {
-    "extends": "@tsconfig/node20/tsconfig.json",
-
 	"compilerOptions": {
+	  "esModuleInterop": true,
+	  "skipLibCheck": true,
+	  "target": "es2022",
+	  "allowJs": true,
+	  "resolveJsonModule": true,
+	  "moduleDetection": "force",
+	  "module": "Preserve",
+	  "isolatedModules": true,
+	  "verbatimModuleSyntax": false,
+  
+	  "strict": true,
+	  "noUncheckedIndexedAccess": true,
+	  "noImplicitOverride": true,
+  
 
-		// Treat files as modules even if it doesn't use import/export
-		"moduleDetection": "force",
-
-		// Ignore module structure
-		"module": "Preserve",
-
-		// Allow JSON modules to be imported
-		"resolveJsonModule": true,
-
-		// Allow JS files to be imported from TS and vice versa
-		"allowJs": true,
-
-		// Use correct ESM import behavior
-		"esModuleInterop": true,
-
-		// Disallow features that require cross-file awareness
-		"isolatedModules": true,
-	},
-
-}
+	
+	  "outDir": "dist",
+	  "sourceMap": true,
+  
+	  "lib": ["es2022"]
+	}
+  }
