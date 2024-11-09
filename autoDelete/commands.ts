@@ -35,12 +35,12 @@ export const enableChannelCommand = {
 
         // The response is sent first so that the response message is not subject to autodelete,
         // per calculation of `after`.
-        const response = await interaction.reply(`Enabled autodelete in ${channel.name} with message duration ${duration}`)
+        const response = await interaction.reply(`Enabled autodelete in <#${channel.id}> with message duration ${duration}`)
 
         try {
             bot.registerChannel(channel, timeInMs, response, duration)
         } catch (e) {
-            await response.edit(`Failed to enable autodelete in ${channel.name}`)
+            await response.edit(`Failed to enable autodelete in <#${channel.id}>`)
             throw new Error("Failed to enable autodelete")
         }
 
@@ -54,12 +54,12 @@ export const disableChannelCommand = {
         const channel: TextChannel | null = interaction.options.getChannel('channel');
         if (!channel) return;
 
-        const response = await interaction.reply(`Disabled autodelete in ${channel.name}`)
+        const response = await interaction.reply(`Disabled autodelete in <#${channel.id}>`)
 
         try {
             await bot.deregisterChannel(channel)
         } catch (e) {
-            await response.edit(`Failed to disable autodelete in ${channel.name}`)
+            await response.edit(`Failed to disable autodelete in <#${channel.id}>`)
             throw new Error("Failed to disable autodelete")
         }
 
@@ -73,10 +73,10 @@ export const listChannelCommand = {
         const response = await interaction.reply(`Working on it...`)
 
         try {
-            const channels: Array<[channelName: string, duration: string]> = await bot.getChannels()
+            const channels: Array<[channelId: string, duration: string]> = await bot.getChannels()
             let accString = "";
-            channels.forEach(([name, durationInEnglish]) => {
-                accString += `#${name} duration: ${durationInEnglish}\n`
+            channels.forEach(([id, durationInEnglish]) => {
+                accString += `<#${id}> duration: ${durationInEnglish}\n`
             })
             await response.edit(`${accString}`)
         } catch (e) {

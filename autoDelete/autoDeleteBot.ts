@@ -143,7 +143,6 @@ export class AutoDeleteBot {
         let after = channelConfig.initialAutoDeleteMessageTimestamp;
 
         const autoDeleteStartTimestamp = new Date(after).getTime()
-        console.log(autoDeleteStartTimestamp);
 
         // not using the client to fetch the messages because it seems to be really slow compared to a direct rest call
         // especially for the minimal amount of info I need
@@ -169,9 +168,9 @@ export class AutoDeleteBot {
         this.messageRegistry.deregisterChannel(channel.id)
     }
 
-    async getChannels(): Promise<Array<[channelName: string, duration: string]>> {
+    async getChannels(): Promise<Array<[channelId: string, duration: string]>> {
         const channels = await this.messageRegistry.getChannels()
-        return channels.map(channel => [channel.channelName, channel.durationInEnglish])
+        return channels.map(channel => [channel.channelId, channel.durationInEnglish])
     }
 
 }
