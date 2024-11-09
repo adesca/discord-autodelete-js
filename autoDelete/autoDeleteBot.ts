@@ -11,24 +11,29 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 
 export class AutoDeleteBot {
     rest: REST;
+    setReady: (value: unknown) => void = () => {}
+    waitForReadyPromise = new Promise((resolve) => {
+        this.setReady = resolve;
+    })
 
 
     constructor(private apiToken: string, private applicationId: string, private messageRegistry: MessageRegistry) {
         this.rest = new REST().setToken(apiToken);
         client.once(Events.ClientReady, readyClient => {
             console.log(`ready! logged in as ${readyClient.user.tag}`)
+            this.setReady(true);
         })
 
         client.on(Events.MessageCreate, async message => {
-        
+            const maybeRegisteredChannel = this.messageRegistry.dbRegisteredChannels.get(message.channelId);
+            if (!maybeRegisteredChannel) return;
 
-            console.log(message.content)
             if (!message.author.bot) {
                 await this.messageRegistry.registerMessage(message)
             } else {
                 await AuditLogs.logNewMessage("Received message, skipping because it's a bot " + message.author.displayName)
             }
-           
+
         })
 
         client.on(Events.InteractionCreate, async interaction => {
@@ -55,7 +60,8 @@ export class AutoDeleteBot {
 
     start() {
         client.login(this.apiToken);
-        this.beginMonitor();
+        this.waitForReadyPromise.then(() =>  this.beginMonitor())
+       
     }
 
     async beginMonitor() {
@@ -95,9 +101,9 @@ export class AutoDeleteBot {
 
     async scanAllChannels(fromBeginning = false) {
         const channels: TextChannel[] = []
-        await AuditLogs.logNewMessage("Scanning all channels")
+        await AuditLogs.logNewMessage("Scanning all channels");
 
-        Object.keys(await this.messageRegistry.getChannels()).forEach(async channelId => {
+        [...this.messageRegistry.dbRegisteredChannels.keys()].forEach(async channelId => {
             try {
                 // For some reason we need to fetch it and then it'll be fully in the cache?
                 const partialChannel = await this.rest.get(Routes.channel(channelId)) as ChannelResponseInterface
@@ -105,6 +111,8 @@ export class AutoDeleteBot {
 
                 if (channel) {
                     channels.push(channel as TextChannel);
+                } else {
+                    await AuditLogs.logNewMessage(`${channelId} was not in the cache`)
                 }
 
 
@@ -114,8 +122,10 @@ export class AutoDeleteBot {
                 console.error(error)
                 console.error("Failed to retrieve channel ", channelId, error.message)
                 console.log("Deregistering channel ", channelId, " because it's disappeared ")
-                // this.messageRegistry.deregisterChannel(channelId)
-
+                if (e instanceof DiscordAPIError) {
+                    this.messageRegistry.deregisterChannel(channelId)
+                }
+                
             }
         })
 
@@ -123,44 +133,36 @@ export class AutoDeleteBot {
     }
 
     async scanChannel(channel: TextChannel, fromBeginning: boolean) {
-        await AuditLogs.logNewMessage("Scanning channel " + channel.name + " " + channel.id)
+        await AuditLogs.logNewMessage(`Scanning ${channel.name} (${channel.id}) for any missed messages`)
         const channelConfig = await this.messageRegistry.getChannel(channel.id);
-       
+
         if (!channelConfig) {
             throw new Error("Can't scan unregistered channel")
         }
 
-        let after = channelConfig.initialAutoDeleteMessageId;
+        let after = channelConfig.initialAutoDeleteMessageTimestamp;
 
-        if (!fromBeginning) {
-            if (channel.lastMessage && channel.lastMessage.createdTimestamp > convertSnowflakeIdToTimestamp(after)) {
-                after = channel.lastMessage.id
-            }
-        }
+        const autoDeleteStartTimestamp = new Date(after).getTime()
+        console.log(autoDeleteStartTimestamp);
 
-        const afterTimestamp = convertSnowflakeIdToTimestamp(after);
-
-        let foundCount = 0;
-        console.log('starting')
         // not using the client to fetch the messages because it seems to be really slow compared to a direct rest call
-        // especially for the minimal amount of info i need
+        // especially for the minimal amount of info I need
         const channelMessages = await this.rest.get(Routes.channelMessages(channel.id)) as MessageResponseInterface[];
         const messagesToDelete = channelMessages
-            .filter(message => new Date(message.timestamp).getTime() > afterTimestamp)
+            .filter(message => new Date(message.timestamp).getTime() > autoDeleteStartTimestamp)
+            .filter(message => !message.author.bot)
             .map(message => {
-                foundCount += 1;
-                return message.id;
+               return message.id
             })
-        console.log('messaged fetched and processed')
 
-        console.log('would delete ', foundCount, ' messages')
-        AuditLogs.logNewMessage("Bulk deleting "+ messagesToDelete.length+ " messages")
-        channel.bulkDelete(messagesToDelete)
-
+            if (messagesToDelete.length > 0) {
+                AuditLogs.logNewMessage(`Bulk deleting ${messagesToDelete.length} messages in ${channel.name}`)
+                channel.bulkDelete(messagesToDelete)
+            }
     }
 
     async registerChannel(channel: TextChannel, durationInMs: number, confirmationMessage: InteractionResponse<boolean>, durationInEnglish: string) {
-        this.messageRegistry.registerChannel(channel, durationInMs, confirmationMessage.id, durationInEnglish)
+       this.messageRegistry.registerChannel(channel, durationInMs, confirmationMessage.id, durationInEnglish, new Date(confirmationMessage.createdTimestamp).toISOString())
     }
 
     async deregisterChannel(channel: TextChannel) {

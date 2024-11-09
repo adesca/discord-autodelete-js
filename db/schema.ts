@@ -8,6 +8,7 @@ export const channels = sqliteTable('channels', {
     channelId: text().primaryKey(),
     durationInMs: int().notNull(),
     initialAutoDeleteMessageId: text().notNull(),
+    initialAutoDeleteMessageTimestamp: text().notNull(),
     channelName: text().notNull(),
     durationInEnglish: text().notNull()
 })
